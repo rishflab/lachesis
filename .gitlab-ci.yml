@@ -4,21 +4,35 @@ stages:
   - test
   - build
   - deploy
-
-# Jobs Section
-# Below are jobs. Jobs are executed in parallel during the matching stage.
-
-# Note that the script is just bash, so if you use a Makefile, you could run
-# `make test`, etc. Also note that you can
+  
+before_script:
+    - apk update
+    - apk add jq util-linux
+    - go get -v github.com/SamuelMarks/batch-ethkey
+    - go get -u -d github.com/magefile/mage
+    - mkdir -p /go/src/github.com/andrecronje/lachesis
+    - git clone https://github.com/SamuelMarks/lachesis /go/src/github.com/andrecronje/lachesis
+    # cp -r /fantom/lachesis /go/src/github.com/andrecronje/lachesis
+    - cd /go/src/github.com/andrecronje/lachesis
+    - glide install
+    
 test code:
   stage: test
+  allow_failure: true
   script:
-    - make test
-
-build lachesis:
+  - cd /go/src/github.com/andrecronje/lachesis
+  - go test ./src/...
+    
+build code:
   stage: build
-  script: go get -v github.com/SamuelMarks/batch-ethkey && go get -u -d github.com/magefile/mage && glide i && ./scripts/multi_build.bash
+  script:
+  - cd /go/src/github.com/andrecronje/lachesis
+  - scripts/multi_build.bash
 
-deploy lachesis:
+deploy code:
   stage: deploy
-  script: timeout 5m logshold=-1,-1,-1,4,0,0 ./scripts/multi_run.bash
+  script:
+  - cd /go/src/github.com/andrecronje/lachesis
+  - scripts/multi_build.bash
+  - mv lachesis_linux scripts/
+  - scripts/multi_run.bash
