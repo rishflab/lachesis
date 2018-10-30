@@ -15,7 +15,7 @@ type AppProxy interface {
 }
 
 // LachesisProxy provides an interface for the application to 
-// submit transactions to the lachesis node
+// submit transactions to the lachesis node.
 type LachesisProxy interface {
 	CommitCh() chan proto.Commit
 	SnapshotRequestCh() chan proto.SnapshotRequest
