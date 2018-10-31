@@ -8,6 +8,7 @@ import (
 	"github.com/andrecronje/lachesis/src/poset"
 )
 
+// define transports to test
 const (
 	TTInmem = iota
 
