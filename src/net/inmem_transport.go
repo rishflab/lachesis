@@ -1,7 +1,5 @@
 package net
 
-
-//todo: i think inmem transport should be removed,
 import (
 	"crypto/rand"
 	"fmt"

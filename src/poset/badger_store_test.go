@@ -367,7 +367,6 @@ func TestDBBlockMethods(t *testing.T) {
 		}
 	})
 
-
 	t.Run("Check signatures in stored Block", func(t *testing.T) {
 		storedBlock, err := store.dbGetBlock(index)
 		if err != nil {
