@@ -21,7 +21,6 @@ import (
 
 )
 
-
 func initPeers(n int) ([]*ecdsa.PrivateKey, *peers_.Peers) {
 	var keys []*ecdsa.PrivateKey
 	peers := peers_.NewPeers()
@@ -61,7 +60,6 @@ func TestProcessSync(t *testing.T) {
 	node0.Init()
 
 	node0.RunAsync(false)
-
 	defer node0.Shutdown()
 
 	peer1Trans, err := net.NewTCPTransport(utils.GetUnusedNetAddr(t), nil, 2, time.Second, testLogger)
@@ -264,6 +262,7 @@ func TestAddTransaction(t *testing.T) {
 		Known:  node0KnownEvents,
 	}
 
+	peer1Trans.LocalAddr()
 	var out net.SyncResponse
 	if err := peer0Trans.Sync(peer1Trans.LocalAddr(), &args, &out); err != nil {
 		t.Fatal(err)
