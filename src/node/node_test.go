@@ -63,6 +63,8 @@ func TestProcessSync(t *testing.T) {
 
 	node0.RunAsync(false)
 
+	defer node0.Shutdown()
+
 	peer1Trans, err := net.NewTCPTransport(utils.GetUnusedNetAddr(t), nil, 2, time.Second, testLogger)
 	if err != nil {
 		t.Fatalf("err: %v", err)
@@ -76,6 +78,7 @@ func TestProcessSync(t *testing.T) {
 	node1.Init()
 
 	node1.RunAsync(false)
+	defer node1.Shutdown()
 
 	// Manually prepare SyncRequest and expected SyncResponse
 
@@ -132,8 +135,6 @@ func TestProcessSync(t *testing.T) {
 			expectedResp.Known, out.Known)
 	}
 
-	node0.Shutdown()
-	node1.Shutdown()
 }
 
 func TestProcessEagerSync(t *testing.T) {
@@ -158,7 +159,6 @@ func TestProcessEagerSync(t *testing.T) {
 	node0.Init()
 
 	node0.RunAsync(false)
-
 
 	peer1Trans, err := net.NewTCPTransport(utils.GetUnusedNetAddr(t), nil, 2, time.Second, testLogger)
 	if err != nil {
@@ -264,7 +264,6 @@ func TestAddTransaction(t *testing.T) {
 		Known:  node0KnownEvents,
 	}
 
-	peer1Trans.LocalAddr()
 	var out net.SyncResponse
 	if err := peer0Trans.Sync(peer1Trans.LocalAddr(), &args, &out); err != nil {
 		t.Fatal(err)
