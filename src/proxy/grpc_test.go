@@ -9,10 +9,11 @@ import (
 	"github.com/andrecronje/lachesis/src/common"
 	"github.com/andrecronje/lachesis/src/poset"
 	"github.com/andrecronje/lachesis/src/proxy/proto"
+	"github.com/andrecronje/lachesis/src/utils"
 )
 
 func TestGrpcCalls(t *testing.T) {
-	addr := "127.0.0.1:9993"
+	addr := utils.GetUnusedNetAddr(t)
 	logger := common.NewTestLogger(t)
 
 	s, err := NewGrpcAppProxy(addr, timeout, logger)
@@ -111,45 +112,46 @@ func TestGrpcCalls(t *testing.T) {
 
 }
 
-//func TestGrpcReConnection(t *testing.T) {
-//	addr := "127.0.0.1:9994"
-//	logger := common.NewTestLogger(t)
-//
-//	c, err := NewGrpcLachesisProxy(addr, logger)
-//	assert.Nil(t, c)
-//	assert.Error(t, err)
-//
-//	s, err := NewGrpcAppProxy(addr, timeout, logger)
-//	assert.NoError(t, err)
-//
-//	c, err = NewGrpcLachesisProxy(addr, logger)
-//	assert.NoError(t, err)
-//
-//	checkConnAndStopServer := func(t *testing.T) {
-//		assert := assert.New(t)
-//		gold := []byte("123456")
-//
-//		err := c.SubmitTx(gold)
-//		assert.NoError(err)
-//
-//		select {
-//		case tx := <-s.SubmitCh():
-//			assert.Equal(gold, tx)
-//		case <-time.After(timeout):
-//			assert.Fail(errTimeout)
-//		}
-//
-//		err = s.Close()
-//		assert.NoError(err)
-//	}
-//
-//	t.Run("#1 Send tx after connection", checkConnAndStopServer)
-//
-//	s, err = NewGrpcAppProxy(addr, timeout/2, logger)
-//	assert.NoError(t, err)
-//
-//	t.Run("#2 Send tx after reconnection", checkConnAndStopServer)
-//
-//	err = c.Close()
-//	assert.NoError(t, err)
-//}
+func TestGrpcReConnection(t *testing.T) {
+	addr := utils.GetUnusedNetAddr(t);
+	logger := common.NewTestLogger(t)
+
+	c, err := NewGrpcLachesisProxy(addr, logger)
+	assert.Nil(t, c)
+	assert.Error(t, err)
+
+	s, err := NewGrpcAppProxy(addr, timeout, logger)
+	assert.NoError(t, err)
+
+	c, err = NewGrpcLachesisProxy(addr, logger)
+	assert.NoError(t, err)
+
+	checkConnAndStopServer := func(t *testing.T) {
+		assert := assert.New(t)
+		gold := []byte("123456")
+
+		err := c.SubmitTx(gold)
+		assert.NoError(err)
+
+		select {
+		case tx := <-s.SubmitCh():
+			assert.Equal(gold, tx)
+		case <-time.After(timeout):
+			assert.Fail(errTimeout)
+		}
+
+		err = s.Close()
+		assert.NoError(err)
+	}
+
+	t.Run("#1 Send tx after connection", checkConnAndStopServer)
+
+
+	s, err = NewGrpcAppProxy(addr, timeout/2, logger)
+	assert.NoError(t, err)
+
+	t.Run("#2 Send tx after reconnection", checkConnAndStopServer)
+
+	err = c.Close()
+	assert.NoError(t, err)
+}
