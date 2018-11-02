@@ -104,6 +104,8 @@ func TestProcessSync(t *testing.T) {
 
 	// Make actual SyncRequest and check SyncResponse
 
+	testLogger.Println("SYNCING...")
+	time.Sleep(2000 * time.Millisecond)
 	var out net.SyncResponse
 	if err := peer0Trans.Sync(peer1Trans.LocalAddr(), &args, &out); err != nil {
 		t.Fatalf("err: %v", err)
@@ -196,8 +198,8 @@ func TestProcessEagerSync(t *testing.T) {
 		Success: true,
 	}
 
+	time.Sleep(2000 * time.Millisecond)
 	// Make actual EagerSyncRequest and check EagerSyncResponse
-
 	var out net.EagerSyncResponse
 	if err := peer0Trans.EagerSync(peer1Trans.LocalAddr(), &args, &out); err != nil {
 		t.Fatalf("err: %v", err)
@@ -251,6 +253,7 @@ func TestAddTransaction(t *testing.T) {
 	defer node1.Shutdown()
 	// Submit a Tx to node0
 
+	time.Sleep(2000 * time.Millisecond)
 	message := "Hello World!"
 	peer0Proxy.SubmitCh() <- ([]byte(message))
 
