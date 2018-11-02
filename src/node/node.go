@@ -115,6 +115,9 @@ func (n *Node) RunAsync(gossip bool) {
 }
 
 func (n *Node) Run(gossip bool) {
+	// make pause before shoting test transactions
+	time.Sleep(time.Duration(n.conf.TestDelay) * time.Second)
+
 	// The ControlTimer allows the background routines to control the
 	// heartbeat timer when the node is in the Gossiping state. The timer should
 	// only be running when there are uncommitted transactions in the system.
@@ -123,6 +126,9 @@ func (n *Node) Run(gossip bool) {
 	// Execute some background work regardless of the state of the node.
 	// Process SumbitTx and CommitBlock requests
 	go n.doBackgroundWork()
+
+	// make pause before gossiping test transactions to allow all nodes come up
+	time.Sleep(time.Duration(n.conf.TestDelay) * time.Second)
 
 	// Execute Node State Machine
 	for {
@@ -380,6 +386,10 @@ func (n *Node) pull(peerAddr string) (syncLimit bool, otherKnownEvents map[int]i
 	resp, err := n.requestSync(peerAddr, knownEvents)
 	elapsed := time.Since(start)
 	n.logger.WithField("Duration", elapsed.Nanoseconds()).Debug("n.requestSync(peerAddr, knownEvents)")
+	// FIXIT: should we catch io.EOF error here and how we process it?
+//	if err == io.EOF {
+//		return false, nil, nil
+//	}
 	if err != nil {
 		n.logger.WithField("Error", err).Error("n.requestSync(peerAddr, knownEvents)")
 		return false, nil, err
