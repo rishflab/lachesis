@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"math/rand"
 	"testing"
 	"time"
 
@@ -13,7 +14,14 @@ import (
 )
 
 func TestGrpcCalls(t *testing.T) {
+
+	const (
+		timeout    = 1 * time.Second
+		errTimeout = "time is over"
+	)
+
 	addr := utils.GetUnusedNetAddr(t)
+
 	logger := common.NewTestLogger(t)
 
 	s, err := NewGrpcAppProxy(addr, timeout, logger)
@@ -56,8 +64,9 @@ func TestGrpcCalls(t *testing.T) {
 		}()
 
 		answ, err := s.CommitBlock(block)
-		assert.Nil(err)
-		assert.Equal(gold, answ)
+		if assert.NoError(err) {
+			assert.Equal(gold, answ)
+		}
 	})
 
 	t.Run("#3 Receive snapshot query", func(t *testing.T) {
@@ -79,8 +88,9 @@ func TestGrpcCalls(t *testing.T) {
 		}()
 
 		answ, err := s.GetSnapshot(index)
-		assert.Nil(err)
-		assert.Equal(gold, answ)
+		if assert.NoError(err) {
+			assert.Equal(gold, answ)
+		}
 	})
 
 	t.Run("#4 Receive restore command", func(t *testing.T) {
@@ -101,7 +111,7 @@ func TestGrpcCalls(t *testing.T) {
 		}()
 
 		err := s.Restore(gold)
-		assert.Nil(err)
+		assert.NoError(err)
 	})
 
 	err = c.Close()
@@ -113,17 +123,21 @@ func TestGrpcCalls(t *testing.T) {
 }
 
 func TestGrpcReConnection(t *testing.T) {
+
+	const (
+		timeout    = 1 * time.Second
+		errTimeout = "time is over"
+
+	)
 	addr := utils.GetUnusedNetAddr(t);
 	logger := common.NewTestLogger(t)
 
 	c, err := NewGrpcLachesisProxy(addr, logger)
-	assert.Nil(t, c)
-	assert.Error(t, err)
+	if assert.NoError(t, err) {
+		assert.NotNil(t, c)
+	}
 
 	s, err := NewGrpcAppProxy(addr, timeout, logger)
-	assert.NoError(t, err)
-
-	c, err = NewGrpcLachesisProxy(addr, logger)
 	assert.NoError(t, err)
 
 	checkConnAndStopServer := func(t *testing.T) {
@@ -150,8 +164,81 @@ func TestGrpcReConnection(t *testing.T) {
 	s, err = NewGrpcAppProxy(addr, timeout/2, logger)
 	assert.NoError(t, err)
 
+	<-time.After(timeout)
+
 	t.Run("#2 Send tx after reconnection", checkConnAndStopServer)
 
 	err = c.Close()
+	assert.NoError(t, err)
+}
+
+func TestGrpcMaxMsgSize(t *testing.T) {
+	const (
+		largeSize  = 100 * 1024 * 1024
+		timeout    = 3 * time.Minute
+		errTimeout = "time is over"
+
+	)
+	addr := utils.GetUnusedNetAddr(t);
+	logger := common.NewTestLogger(t)
+
+	s, err := NewGrpcAppProxy(addr, timeout, logger)
+	assert.NoError(t, err)
+
+	c, err := NewGrpcLachesisProxy(addr, logger)
+	assert.NoError(t, err)
+
+	largeData := make([]byte, largeSize)
+	_, err = rand.Read(largeData)
+	assert.NoError(t, err)
+
+	t.Run("#1 Send large tx", func(t *testing.T) {
+		assert := assert.New(t)
+
+		err = c.SubmitTx(largeData)
+		assert.NoError(err)
+
+		select {
+		case tx := <-s.SubmitCh():
+			assert.Equal(largeData, tx)
+		case <-time.After(timeout):
+			assert.Fail(errTimeout)
+		}
+	})
+
+	t.Run("#2 Receive large block", func(t *testing.T) {
+		assert := assert.New(t)
+		block := poset.Block{
+			Body: poset.BlockBody{
+				Transactions: [][]byte{
+					largeData,
+				},
+			},
+		}
+		hash := largeData[:largeSize/10]
+
+		go func() {
+			select {
+			case event := <-c.CommitCh():
+				assert.EqualValues(block, event.Block)
+				event.RespChan <- proto.CommitResponse{
+					StateHash: hash,
+					Error:     nil,
+				}
+			case <-time.After(timeout):
+				assert.Fail(errTimeout)
+			}
+		}()
+
+		answ, err := s.CommitBlock(block)
+		if assert.NoError(err) {
+			assert.Equal(hash, answ)
+		}
+	})
+
+	err = c.Close()
+	assert.NoError(t, err)
+
+	err = s.Close()
 	assert.NoError(t, err)
 }
