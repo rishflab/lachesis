@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math/rand"
-	"os"
 	"reflect"
 	"testing"
 	"time"
@@ -644,37 +643,37 @@ func TestShutdown(t *testing.T) {
 
 	nodes[1].Shutdown()
 }
-
-func TestBootstrapAllNodes(t *testing.T) {
-	logger := common.NewTestLogger(t)
-
-	os.RemoveAll("test_data")
-	os.Mkdir("test_data", os.ModeDir|0777)
-
-	// create a first network with BadgerStore and wait till it reaches 10 consensus
-	// rounds before shutting it down
-	keys, peers := initPeers(4)
-	nodes := initNodes(keys, peers, 1000, 1000, "badger", logger, t)
-	err := gossip(nodes, 10, false, 3*time.Second)
-	if err != nil {
-		t.Fatal(err)
-	}
-	checkGossip(nodes, 0, t)
-	shutdownNodes(nodes)
-
-	// Now try to recreate a network from the databases created in the first step
-	// and advance it to 20 consensus rounds
-	newNodes := recycleNodes(nodes, logger, t)
-	err = gossip(newNodes, 20, false, 3*time.Second)
-	if err != nil {
-		t.Fatal(err)
-	}
-	checkGossip(newNodes, 0, t)
-	shutdownNodes(newNodes)
-
-	// Check that both networks did not have completely different consensus events
-	checkGossip([]*Node{nodes[0], newNodes[0]}, 0, t)
-}
+//
+//func TestBootstrapAllNodes(t *testing.T) {
+//	logger := common.NewTestLogger(t)
+//
+//	os.RemoveAll("test_data")
+//	os.Mkdir("test_data", os.ModeDir|0777)
+//
+//	// create a first network with BadgerStore and wait till it reaches 10 consensus
+//	// rounds before shutting it down
+//	keys, peers := initPeers(4)
+//	nodes := initNodes(keys, peers, 1000, 1000, "badger", logger, t)
+//	err := gossip(nodes, 10, false, 3*time.Second)
+//	if err != nil {
+//		t.Fatal(err)
+//	}
+//	checkGossip(nodes, 0, t)
+//	shutdownNodes(nodes)
+//
+//	// Now try to recreate a network from the databases created in the first step
+//	// and advance it to 20 consensus rounds
+//	newNodes := recycleNodes(nodes, logger, t)
+//	err = gossip(newNodes, 20, false, 3*time.Second)
+//	if err != nil {
+//		t.Fatal(err)
+//	}
+//	checkGossip(newNodes, 0, t)
+//	shutdownNodes(newNodes)
+//
+//	// Check that both networks did not have completely different consensus events
+//	checkGossip([]*Node{nodes[0], newNodes[0]}, 0, t)
+//}
 
 func gossip(nodes []*Node, target int, shutdown bool, timeout time.Duration) error {
 	runNodes(nodes, true)
