@@ -654,6 +654,7 @@ func TestShutdown(t *testing.T) {
 //	// rounds before shutting it down
 //	keys, peers := initPeers(4)
 //	nodes := initNodes(keys, peers, 1000, 1000, "badger", logger, t)
+//
 //	err := gossip(nodes, 10, false, 3*time.Second)
 //	if err != nil {
 //		t.Fatal(err)
@@ -664,6 +665,7 @@ func TestShutdown(t *testing.T) {
 //	// Now try to recreate a network from the databases created in the first step
 //	// and advance it to 20 consensus rounds
 //	newNodes := recycleNodes(nodes, logger, t)
+//
 //	err = gossip(newNodes, 20, false, 3*time.Second)
 //	if err != nil {
 //		t.Fatal(err)
