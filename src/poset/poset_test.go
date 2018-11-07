@@ -119,7 +119,7 @@ func createPoset(db bool, orderedEvents *[]Event, participants *peers.Peers, log
 		var err error
 		store, err = NewBadgerStore(participants, cacheSize, badgerDir)
 		if err != nil {
-			logger.Fatal(err)
+			logger.Fatal("ERROR creating badger store", err)
 		}
 	} else {
 		store = NewInmemStore(participants, cacheSize)
@@ -501,7 +501,7 @@ func TestInsertEvent(t *testing.T) {
 			t.Fatalf("Invalid wire info on f1")
 		}
 
-		e0CreatorID := strconv.Itoa(p.Participants.ByPubKey[e0.Creator()].ID)
+		e0CreatorID := strconv.Itoa(int(p.Participants.ByPubKey[e0.Creator()].ID))
 
 		type Hierarchy struct {
 			ev, selfAncestor, ancestor string
