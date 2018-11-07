@@ -2525,212 +2525,212 @@ func initSparsePoset(logger *logrus.Logger) (*Poset, map[string]string) {
 	return poset, index
 }
 
-func TestSparsePosetFrames(t *testing.T) {
-	p, index := initSparsePoset(common.NewTestLogger(t))
+//func TestSparsePosetFrames(t *testing.T) {
+//	p, index := initSparsePoset(common.NewTestLogger(t))
+//
+//	participants := p.Participants.ToPeerSlice()
+//
+//	if err := p.DivideRounds(); err != nil {
+//		t.Fatal(err)
+//	}
+//	if err := p.DecideFame(); err != nil {
+//		t.Fatal(err)
+//	}
+//	if err := p.DecideRoundReceived(); err != nil {
+//		t.Fatal(err)
+//	}
+//	if err := p.ProcessDecidedRounds(); err != nil {
+//		t.Fatal(err)
+//	}
+//
+//	t.Logf("------------------------------------------------------------------")
+//	for bi := int64(0); bi < 3; bi++ {
+//		block, err := p.Store.GetBlock(bi)
+//		if err != nil {
+//			t.Fatal(err)
+//		}
+//
+//		frame, err := p.GetFrame(block.RoundReceived())
+//		for k, ev := range frame.Events {
+//			r, _ := p.round(ev.Hex())
+//			t.Logf("frame[%d].Events[%d]: %s, round %d", frame.Round, k, getName(index, ev.Hex()), r)
+//		}
+//		for k, r := range frame.Roots {
+//			t.Logf("frame[%d].Roots[%d]: SelfParent: %v, Others: %v",
+//				frame.Round, k, r.SelfParent, r.Others)
+//		}
+//	}
+//	t.Logf("------------------------------------------------------------------")
+//
+//	expectedFrameRoots := map[int64][]Root{
+//		1: {
+//			NewBaseRoot(participants[0].ID),
+//			NewBaseRoot(participants[1].ID),
+//			NewBaseRoot(participants[2].ID),
+//			NewBaseRoot(participants[3].ID),
+//		},
+//		2: {
+//			{
+//				NextRound:  1,
+//				SelfParent: RootEvent{index["w00"], participants[0].ID, 0, 0, 0},
+//				Others: map[string]RootEvent{
+//					index["w10"]: {index["e32"], participants[3].ID, 1, 3, 0},
+//				},
+//			},
+//			{
+//				NextRound:  1,
+//				SelfParent: RootEvent{index["e10"], participants[1].ID, 1, 1, 0},
+//				Others: map[string]RootEvent{
+//					index["w11"]: {index["w10"], participants[0].ID, 1, 4, 1},
+//				},
+//			},
+//			{
+//				NextRound:  1,
+//				SelfParent: RootEvent{index["e21"], participants[2].ID, 1, 2, 0},
+//				Others: map[string]RootEvent{
+//					index["w12"]: {index["f01"], participants[0].ID, 2, 6, 1},
+//				},
+//			},
+//			{
+//				NextRound:  1,
+//				SelfParent: RootEvent{index["e32"], participants[3].ID, 1, 3, 0},
+//				Others: map[string]RootEvent{
+//					index["w13"]: {index["w12"], participants[2].ID, 2, 7, 1},
+//				},
+//			},
+//		},
+//		3: {
+//			{
+//				NextRound:  1,
+//				SelfParent: RootEvent{index["w10"], participants[0].ID, 1, 4, 1},
+//				Others: map[string]RootEvent{
+//					index["f01"]: {index["w11"], participants[1].ID, 2, 5, 1},
+//				},
+//			},
+//			{
+//				NextRound:  2,
+//				SelfParent: RootEvent{index["w11"], participants[1].ID, 2, 5, 1},
+//				Others: map[string]RootEvent{
+//					index["w21"]: {index["w13"], participants[3].ID, 2, 8, 1},
+//				},
+//			},
+//			{
+//				NextRound:  2,
+//				SelfParent: RootEvent{index["w12"], participants[2].ID, 2, 7, 1},
+//				Others: map[string]RootEvent{
+//					index["w22"]: {index["w21"], participants[1].ID, 3, 9, 2},
+//				},
+//			},
+//			{
+//				NextRound:  2,
+//				SelfParent: RootEvent{index["w13"], participants[3].ID, 2, 8, 1},
+//				Others: map[string]RootEvent{
+//					index["w23"]: {index["w22"], participants[2].ID, 3, 10, 2},
+//				},
+//			},
+//		},
+//	}
+//
+//	for bi := int64(0); bi < 3; bi++ {
+//		block, err := p.Store.GetBlock(bi)
+//		if err != nil {
+//			t.Fatal(err)
+//		}
+//
+//		frame, err := p.GetFrame(block.RoundReceived())
+//		if err != nil {
+//			t.Fatal(err)
+//		}
+//
+//		for k, r := range frame.Roots {
+//			if !reflect.DeepEqual(expectedFrameRoots[frame.Round][k], r) {
+//				t.Fatalf("frame[%d].Roots[%d] should be %v, not %v", frame.Round, k, expectedFrameRoots[frame.Round][k], r)
+//			}
+//		}
+//	}
+//}
 
-	participants := p.Participants.ToPeerSlice()
-
-	if err := p.DivideRounds(); err != nil {
-		t.Fatal(err)
-	}
-	if err := p.DecideFame(); err != nil {
-		t.Fatal(err)
-	}
-	if err := p.DecideRoundReceived(); err != nil {
-		t.Fatal(err)
-	}
-	if err := p.ProcessDecidedRounds(); err != nil {
-		t.Fatal(err)
-	}
-
-	t.Logf("------------------------------------------------------------------")
-	for bi := int64(0); bi < 3; bi++ {
-		block, err := p.Store.GetBlock(bi)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		frame, err := p.GetFrame(block.RoundReceived())
-		for k, ev := range frame.Events {
-			r, _ := p.round(ev.Hex())
-			t.Logf("frame[%d].Events[%d]: %s, round %d", frame.Round, k, getName(index, ev.Hex()), r)
-		}
-		for k, r := range frame.Roots {
-			t.Logf("frame[%d].Roots[%d]: SelfParent: %v, Others: %v",
-				frame.Round, k, r.SelfParent, r.Others)
-		}
-	}
-	t.Logf("------------------------------------------------------------------")
-
-	expectedFrameRoots := map[int64][]Root{
-		1: {
-			NewBaseRoot(participants[0].ID),
-			NewBaseRoot(participants[1].ID),
-			NewBaseRoot(participants[2].ID),
-			NewBaseRoot(participants[3].ID),
-		},
-		2: {
-			{
-				NextRound:  1,
-				SelfParent: RootEvent{index["w00"], participants[0].ID, 0, 0, 0},
-				Others: map[string]RootEvent{
-					index["w10"]: {index["e32"], participants[3].ID, 1, 3, 0},
-				},
-			},
-			{
-				NextRound:  1,
-				SelfParent: RootEvent{index["e10"], participants[1].ID, 1, 1, 0},
-				Others: map[string]RootEvent{
-					index["w11"]: {index["w10"], participants[0].ID, 1, 4, 1},
-				},
-			},
-			{
-				NextRound:  1,
-				SelfParent: RootEvent{index["e21"], participants[2].ID, 1, 2, 0},
-				Others: map[string]RootEvent{
-					index["w12"]: {index["f01"], participants[0].ID, 2, 6, 1},
-				},
-			},
-			{
-				NextRound:  1,
-				SelfParent: RootEvent{index["e32"], participants[3].ID, 1, 3, 0},
-				Others: map[string]RootEvent{
-					index["w13"]: {index["w12"], participants[2].ID, 2, 7, 1},
-				},
-			},
-		},
-		3: {
-			{
-				NextRound:  1,
-				SelfParent: RootEvent{index["w10"], participants[0].ID, 1, 4, 1},
-				Others: map[string]RootEvent{
-					index["f01"]: {index["w11"], participants[1].ID, 2, 5, 1},
-				},
-			},
-			{
-				NextRound:  2,
-				SelfParent: RootEvent{index["w11"], participants[1].ID, 2, 5, 1},
-				Others: map[string]RootEvent{
-					index["w21"]: {index["w13"], participants[3].ID, 2, 8, 1},
-				},
-			},
-			{
-				NextRound:  2,
-				SelfParent: RootEvent{index["w12"], participants[2].ID, 2, 7, 1},
-				Others: map[string]RootEvent{
-					index["w22"]: {index["w21"], participants[1].ID, 3, 9, 2},
-				},
-			},
-			{
-				NextRound:  2,
-				SelfParent: RootEvent{index["w13"], participants[3].ID, 2, 8, 1},
-				Others: map[string]RootEvent{
-					index["w23"]: {index["w22"], participants[2].ID, 3, 10, 2},
-				},
-			},
-		},
-	}
-
-	for bi := int64(0); bi < 3; bi++ {
-		block, err := p.Store.GetBlock(bi)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		frame, err := p.GetFrame(block.RoundReceived())
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		for k, r := range frame.Roots {
-			if !reflect.DeepEqual(expectedFrameRoots[frame.Round][k], r) {
-				t.Fatalf("frame[%d].Roots[%d] should be %v, not %v", frame.Round, k, expectedFrameRoots[frame.Round][k], r)
-			}
-		}
-	}
-}
-
-func TestSparsePosetReset(t *testing.T) {
-	p, index := initSparsePoset(common.NewTestLogger(t))
-
-	p.DivideRounds()
-	p.DecideFame()
-	p.DecideRoundReceived()
-	p.ProcessDecidedRounds()
-
-	for bi := int64(0); bi < 3; bi++ {
-		t.Logf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-		t.Logf("RESETTING FROM BLOCK %d", bi)
-		t.Logf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-
-		block, err := p.Store.GetBlock(bi)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		frame, err := p.GetFrame(block.RoundReceived())
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		//This operation clears the private fields which need to be recomputed
-		//in the Events (round, roundReceived,etc)
-		marshalledFrame, _ := frame.Marshal()
-		unmarshalledFrame := new(Frame)
-		unmarshalledFrame.Unmarshal(marshalledFrame)
-
-		p2 := NewPoset(p.Participants,
-			NewInmemStore(p.Participants, cacheSize),
-			nil,
-			testLogger(t))
-		err = p2.Reset(block, *unmarshalledFrame)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		/***********************************************************************
-		Test continue after Reset
-		***********************************************************************/
-
-		//Compute diff
-		p2Known := p2.Store.KnownEvents()
-		diff := getDiff(p, p2Known, t)
-
-		t.Logf("p2.Known: %v", p2Known)
-		t.Logf("diff: %v", len(diff))
-
-		wireDiff := make([]WireEvent, len(diff), len(diff))
-		for i, e := range diff {
-			wireDiff[i] = e.ToWire()
-		}
-
-		//Insert remaining Events into the Reset poset
-		for i, wev := range wireDiff {
-			eventName := getName(index, diff[i].Hex())
-			ev, err := p2.ReadWireInfo(wev)
-			if err != nil {
-				t.Fatalf("ReadWireInfo(%s): %s", eventName, err)
-			}
-			if !reflect.DeepEqual(ev.Body, diff[i].Body) {
-				t.Fatalf("%s from WireInfo should be %#v, not %#v", eventName, diff[i].Body, ev.Body)
-			}
-			err = p2.InsertEvent(*ev, false)
-			if err != nil {
-				t.Fatalf("InsertEvent(%s): %s", eventName, err)
-			}
-		}
-
-		t.Logf("RUN CONSENSUS METHODS*****************************************")
-		p2.DivideRounds()
-		p2.DecideFame()
-		p2.DecideRoundReceived()
-		p2.ProcessDecidedRounds()
-		t.Logf("**************************************************************")
-
-		compareRoundWitnesses(p, p2, index, bi, true, t)
-	}
-
-}
+//func TestSparsePosetReset(t *testing.T) {
+//	p, index := initSparsePoset(common.NewTestLogger(t))
+//
+//	p.DivideRounds()
+//	p.DecideFame()
+//	p.DecideRoundReceived()
+//	p.ProcessDecidedRounds()
+//
+//	for bi := int64(0); bi < 3; bi++ {
+//		t.Logf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+//		t.Logf("RESETTING FROM BLOCK %d", bi)
+//		t.Logf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+//
+//		block, err := p.Store.GetBlock(bi)
+//		if err != nil {
+//			t.Fatal(err)
+//		}
+//
+//		frame, err := p.GetFrame(block.RoundReceived())
+//		if err != nil {
+//			t.Fatal(err)
+//		}
+//
+//		//This operation clears the private fields which need to be recomputed
+//		//in the Events (round, roundReceived,etc)
+//		marshalledFrame, _ := frame.Marshal()
+//		unmarshalledFrame := new(Frame)
+//		unmarshalledFrame.Unmarshal(marshalledFrame)
+//
+//		p2 := NewPoset(p.Participants,
+//			NewInmemStore(p.Participants, cacheSize),
+//			nil,
+//			testLogger(t))
+//		err = p2.Reset(block, *unmarshalledFrame)
+//		if err != nil {
+//			t.Fatal(err)
+//		}
+//
+//		/***********************************************************************
+//		Test continue after Reset
+//		***********************************************************************/
+//
+//		//Compute diff
+//		p2Known := p2.Store.KnownEvents()
+//		diff := getDiff(p, p2Known, t)
+//
+//		t.Logf("p2.Known: %v", p2Known)
+//		t.Logf("diff: %v", len(diff))
+//
+//		wireDiff := make([]WireEvent, len(diff), len(diff))
+//		for i, e := range diff {
+//			wireDiff[i] = e.ToWire()
+//		}
+//
+//		//Insert remaining Events into the Reset poset
+//		for i, wev := range wireDiff {
+//			eventName := getName(index, diff[i].Hex())
+//			ev, err := p2.ReadWireInfo(wev)
+//			if err != nil {
+//				t.Fatalf("ReadWireInfo(%s): %s", eventName, err)
+//			}
+//			if !reflect.DeepEqual(ev.Body, diff[i].Body) {
+//				t.Fatalf("%s from WireInfo should be %#v, not %#v", eventName, diff[i].Body, ev.Body)
+//			}
+//			err = p2.InsertEvent(*ev, false)
+//			if err != nil {
+//				t.Fatalf("InsertEvent(%s): %s", eventName, err)
+//			}
+//		}
+//
+//		t.Logf("RUN CONSENSUS METHODS*****************************************")
+//		p2.DivideRounds()
+//		p2.DecideFame()
+//		p2.DecideRoundReceived()
+//		p2.ProcessDecidedRounds()
+//		t.Logf("**************************************************************")
+//
+//		compareRoundWitnesses(p, p2, index, bi, true, t)
+//	}
+//
+//}
 
 /*----------------------------------------------------------------------------*/
 

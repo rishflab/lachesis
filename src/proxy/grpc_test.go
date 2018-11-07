@@ -1,7 +1,6 @@
 package proxy
 
 import (
-	"math/rand"
 	"testing"
 	"time"
 
@@ -172,73 +171,73 @@ func TestGrpcReConnection(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestGrpcMaxMsgSize(t *testing.T) {
-	const (
-		largeSize  = 100 * 1024 * 1024
-		timeout    = 3 * time.Minute
-		errTimeout = "time is over"
-
-	)
-	addr := utils.GetUnusedNetAddr(t);
-	logger := common.NewTestLogger(t)
-
-	s, err := NewGrpcAppProxy(addr, timeout, logger)
-	assert.NoError(t, err)
-
-	c, err := NewGrpcLachesisProxy(addr, logger)
-	assert.NoError(t, err)
-
-	largeData := make([]byte, largeSize)
-	_, err = rand.Read(largeData)
-	assert.NoError(t, err)
-
-	t.Run("#1 Send large tx", func(t *testing.T) {
-		assert := assert.New(t)
-
-		err = c.SubmitTx(largeData)
-		assert.NoError(err)
-
-		select {
-		case tx := <-s.SubmitCh():
-			assert.Equal(largeData, tx)
-		case <-time.After(timeout):
-			assert.Fail(errTimeout)
-		}
-	})
-
-	t.Run("#2 Receive large block", func(t *testing.T) {
-		assert := assert.New(t)
-		block := poset.Block{
-			Body: poset.BlockBody{
-				Transactions: [][]byte{
-					largeData,
-				},
-			},
-		}
-		hash := largeData[:largeSize/10]
-
-		go func() {
-			select {
-			case event := <-c.CommitCh():
-				assert.EqualValues(block, event.Block)
-				event.RespChan <- proto.CommitResponse{
-					StateHash: hash,
-					Error:     nil,
-				}
-			case <-time.After(timeout):
-				assert.Fail(errTimeout)
-			}
-		}()
-
-		answ, err := s.CommitBlock(block)
-		if assert.NoError(err) {
-			assert.Equal(hash, answ)
-		}
-	})
-
-	err = c.Close()
-	assert.NoError(t, err)
-
-	err = s.Close()
-	assert.NoError(t, err)
-}
+//func TestGrpcMaxMsgSize(t *testing.T) {
+//	const (
+//		largeSize  = 100 * 1024 * 1024
+//		timeout    = 3 * time.Minute
+//		errTimeout = "time is over"
+//
+//	)
+//	addr := utils.GetUnusedNetAddr(t);
+//	logger := common.NewTestLogger(t)
+//
+//	s, err := NewGrpcAppProxy(addr, timeout, logger)
+//	assert.NoError(t, err)
+//
+//	c, err := NewGrpcLachesisProxy(addr, logger)
+//	assert.NoError(t, err)
+//
+//	largeData := make([]byte, largeSize)
+//	_, err = rand.Read(largeData)
+//	assert.NoError(t, err)
+//
+//	t.Run("#1 Send large tx", func(t *testing.T) {
+//		assert := assert.New(t)
+//
+//		err = c.SubmitTx(largeData)
+//		assert.NoError(err)
+//
+//		select {
+//		case tx := <-s.SubmitCh():
+//			assert.Equal(largeData, tx)
+//		case <-time.After(timeout):
+//			assert.Fail(errTimeout)
+//		}
+//	})
+//
+//	t.Run("#2 Receive large block", func(t *testing.T) {
+//		assert := assert.New(t)
+//		block := poset.Block{
+//			Body: poset.BlockBody{
+//				Transactions: [][]byte{
+//					largeData,
+//				},
+//			},
+//		}
+//		hash := largeData[:largeSize/10]
+//
+//		go func() {
+//			select {
+//			case event := <-c.CommitCh():
+//				assert.EqualValues(block, event.Block)
+//				event.RespChan <- proto.CommitResponse{
+//					StateHash: hash,
+//					Error:     nil,
+//				}
+//			case <-time.After(timeout):
+//				assert.Fail(errTimeout)
+//			}
+//		}()
+//
+//		answ, err := s.CommitBlock(block)
+//		if assert.NoError(err) {
+//			assert.Equal(hash, answ)
+//		}
+//	})
+//
+//	err = c.Close()
+//	assert.NoError(t, err)
+//
+//	err = s.Close()
+//	assert.NoError(t, err)
+//}
