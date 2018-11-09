@@ -53,8 +53,8 @@ func initCores(n int, t *testing.T) ([]Core, map[int64]*ecdsa.PrivateKey, map[st
 			t.Fatal(err)
 		}
 
-		cores = append(cores, core)
-		index[fmt.Sprintf("e%d", i)] = core.Head
+		cores = append(cores, *core)
+		index[fmt.Sprintf("e%d", i)] = core.head
 	}
 
 	return cores, participantKeys, index
@@ -229,7 +229,7 @@ func insertEvent(cores []Core, keys map[int64]*ecdsa.PrivateKey, index map[strin
 			return err
 		}
 		// event is not signed because passed by value
-		index[name] = cores[participant].Head
+		index[name] = cores[participant].head
 	} else {
 		event.Sign(keys[creator])
 		if err := cores[participant].InsertEvent(event, true); err != nil {
@@ -364,7 +364,7 @@ func TestSync(t *testing.T) {
 	if core0Head.OtherParent() != index["e1"] {
 		t.Fatalf("core 0 head other-parent should be e1")
 	}
-	if len(core0Head.FlagTable) == 0 {
+	if len(core0Head.Message.FlagTable) == 0 {
 		t.Fatal("flag table is null")
 	}
 	index["e01"] = core0Head.Hex()
