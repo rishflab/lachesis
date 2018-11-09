@@ -545,8 +545,9 @@ func TestCatchUp(t *testing.T) {
 
 	node4 := initNodes(keys[3:], peers, 1000, 400, "inmem", logger, t)[0]
 
-	// Run parallel routine to check node4 eventually reaches CatchingUp state.
-	timeout := time.After(10 * time.Second)
+	// Run parallel routine to check node4 eventually reaches CatchingUp state. Error if node4 doesn't enter
+	// catching up state in the timeout duration.
+	timeout := time.After(1 * time.Second)
 	go func() {
 		for {
 			select {
@@ -563,10 +564,10 @@ func TestCatchUp(t *testing.T) {
 	node4.RunAsync(true)
 	defer node4.Shutdown()
 
-	// Gossip some more
+	//Gossip some more
 	nodes := append(normalNodes, node4)
 	newTarget := target + 20
-	err = bombardAndWait(nodes, newTarget, 10*time.Second)
+	err = bombardAndWait(nodes, newTarget, 1*time.Millisecond)
 	if err != nil {
 		t.Fatal(err)
 	}
