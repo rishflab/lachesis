@@ -7,48 +7,7 @@ import (
 	"fmt"
 
 	"github.com/andrecronje/lachesis/src/crypto"
-	"github.com/andrecronje/lachesis/src/peers"
 )
-
-/*******************************************************************************
-InternalTransactions
-*******************************************************************************/
-type TransactionType uint8
-
-const (
-	PEER_ADD TransactionType = iota
-	PEER_REMOVE
-)
-
-type InternalTransaction struct {
-	Type TransactionType
-	Peer peers.Peer
-}
-
-func NewInternalTransaction(tType TransactionType, peer peers.Peer) InternalTransaction {
-	return InternalTransaction{
-		Type: tType,
-		Peer: peer,
-	}
-}
-
-//json encoding of body only
-func (t *InternalTransaction) Marshal() ([]byte, error) {
-	var b bytes.Buffer
-	enc := json.NewEncoder(&b) //will write to b
-	if err := enc.Encode(t); err != nil {
-		return nil, err
-	}
-	return b.Bytes(), nil
-}
-func (t *InternalTransaction) Unmarshal(data []byte) error {
-	b := bytes.NewBuffer(data)
-	dec := json.NewDecoder(b) //will read from b
-	if err := dec.Decode(t); err != nil {
-		return err
-	}
-	return nil
-}
 
 /*******************************************************************************
 EventBody
@@ -112,7 +71,7 @@ type EventMessage struct {
 	hex     string
 
 	// FlagTable stores connection information.
-	FlagTable []byte
+	FlagTable FlagTable
 
 	// If the event is a witness, then stores the roots that it sees.
 	WitnessProof []string
@@ -344,8 +303,7 @@ func (e *Event) GetFlagTable() (result map[string]int64, err error) {
 }
 
 // MergeFlagTable returns merged flag table object.
-func (e *Event) MergeFlagTable(
-	dst map[string]int64) (result map[string]int64, err error) {
+func (e *Event) MergeFlagTable(dst map[string]int64) (result map[string]int64, err error) {
 	src := make(map[string]int64)
 	if err := json.Unmarshal(e.Message.FlagTable, &src); err != nil {
 		return nil, err

@@ -59,11 +59,6 @@ func initCores(n int, t *testing.T) ([]Core, map[int64]*ecdsa.PrivateKey, map[st
 
 	return cores, participantKeys, index
 }
-//
-//type PostAdjList struct {
-//
-//}
-//
 
 /*
 e01 |   |
@@ -87,9 +82,10 @@ func appendEvent(coreIndex int64, selfParentId string, parentId string, selfId s
 	parentFlagTable, _ := parent.GetFlagTable()
 	selfParentFlagTable, _ := selfParent.MergeFlagTable(parentFlagTable)
 
-	event01 := poset.NewEvent([][]byte{}, []poset.InternalTransaction{}, nil,
+	event := poset.NewEvent([][]byte{}, []poset.InternalTransaction{}, nil,
 		[]string{index[selfParentId], index[parentId]}, cores[coreIndex].PubKey(), 1, selfParentFlagTable)
-	if err := insertEvent(cores, keys, index, event01, selfId, participant,
+
+	if err := insertEvent(cores, keys, index, event, selfId, participant,
 		int64(common.Hash32(cores[coreIndex].pubKey))); err != nil {
 		t.Fatalf("error inserting new event: %s\n", err)
 	}
@@ -125,101 +121,11 @@ func initPoset(t *testing.T, cores []Core, keys map[int64]*ecdsa.PrivateKey, ind
 
 	appendEvent(0,"e0", "e1", "e01", t, cores, keys, index, participant);
 
+	appendEvent(2,"e2", "e01", "e20", t, cores, keys, index, participant);
 
-	// Get flag tables from parents
-	event2, err := cores[2].poset.Store.GetEvent(index["e2"])
-	if err != nil {
-		t.Fatalf("failed to get parent: %s", err)
-	}
+	appendEvent(1,"e1", "e20", "e12", t, cores, keys, index, participant);
 
-	event20ft, _ := event2.MergeFlagTable(event01ft)
-
-	event20 := poset.NewEvent([][]byte{},
-		[]poset.InternalTransaction{},
-		nil,
-		[]string{index["e2"], index["e01"]}, // e2 and e01
-		cores[2].PubKey(), 1, event20ft)
-	if err := insertEvent(cores, keys, index, event20, "e20", participant,
-		int64(common.Hash32(cores[2].pubKey))); err != nil {
-		fmt.Printf("error inserting e20: %s\n", err)
-	}
-
-	event12ft, _ := event1.MergeFlagTable(event20ft)
-
-	event12 := poset.NewEvent([][]byte{},
-		[]poset.InternalTransaction{},
-		nil,
-		[]string{index["e1"], index["e20"]}, // e1 and e20
-		cores[1].PubKey(), 1, event12ft)
-	if err := insertEvent(cores, keys, index, event12, "e12", participant,
-		int64(common.Hash32(cores[1].pubKey))); err != nil {
-		fmt.Printf("error inserting e12: %s\n", err)
-	}
 }
-
-
-/*
-|  e12  |
-|   | \ |
-|   |   e20
-|   | / |
-|   /   |
-| / |   |
-e01 |   |
-| \ |   |
-e0  e1  e2
-0   1   2
-*/
-//func initPoset2(t *testing.T, cores []Core,  index map[string]string, logger *logrus.Logger, full bool) {
-//
-//	event01, err := poset.NewEvent([][]byte{}, []poset.InternalTransaction{}, nil, []string{index["e0"], index["e1"]}, cores[0].PubKey(), 1, event01ft);
-//
-//	event02, err := poset.NewEvent([][]byte{}, []poset.InternalTransaction{}, nil, []string{index["e0"], index["e1"]}, cores[0].PubKey(), 1, event02ft);
-//
-//	event03, err := poset.NewEvent([][]byte{}, []poset.InternalTransaction{}, nil, []string{index["e0"], index["e1"]}, cores[0].PubKey(), 1, event03ft);
-//	//plays := []play{
-//	//	{2, 1, "w02", "w03", "a23", [][]byte{[]byte("a23")}, nil},
-//	//	{1, 1, "w01", "a23", "a12", [][]byte{[]byte("a12")}, nil},
-//	//	{0, 1, "w00", "", "a00", [][]byte{[]byte("a00")}, nil},
-//	//	{1, 2, "a12", "a00", "a10", [][]byte{[]byte("a10")}, nil},
-//	//	{2, 2, "a23", "a12", "a21", [][]byte{[]byte("a21")}, nil},
-//	//	{3, 1, "w03", "a21", "w13", [][]byte{[]byte("w13")}, nil},
-//	//	{2, 3, "a21", "w13", "w12", [][]byte{[]byte("w12")}, nil},
-//	//	{1, 3, "a10", "w12", "w11", [][]byte{[]byte("w11")}, nil},
-//	//	{0, 2, "a00", "w11", "w10", [][]byte{[]byte("w10")}, nil},
-//	//	{2, 4, "w12", "w11", "b21", [][]byte{[]byte("b21")}, nil},
-//	//	{3, 2, "w13", "b21", "w23", [][]byte{[]byte("w23")}, nil},
-//	//	{1, 4, "w11", "w23", "w21", [][]byte{[]byte("w21")}, nil},
-//	//	{0, 3, "w10", "", "b00", [][]byte{[]byte("b00")}, nil},
-//	//	{1, 5, "w21", "b00", "c10", [][]byte{[]byte("c10")}, nil},
-//	//	{2, 5, "b21", "c10", "w22", [][]byte{[]byte("w22")}, nil},
-//	//	{0, 4, "b00", "w22", "w20", [][]byte{[]byte("w20")}, nil},
-//	//	{1, 6, "c10", "w20", "w31", [][]byte{[]byte("w31")}, nil},
-//	//	{2, 6, "w22", "w31", "w32", [][]byte{[]byte("w32")}, nil},
-//	//	{0, 5, "w20", "w32", "w30", [][]byte{[]byte("w30")}, nil},
-//	//	{3, 3, "w23", "w32", "w33", [][]byte{[]byte("w33")}, nil},
-//	//	{1, 7, "w31", "w33", "d13", [][]byte{[]byte("d13")}, nil},
-//	//	{0, 6, "w30", "d13", "w40", [][]byte{[]byte("w40")}, nil},
-//	//	{1, 8, "d13", "w40", "w41", [][]byte{[]byte("w41")}, nil},
-//	//	{2, 7, "w32", "w41", "w42", [][]byte{[]byte("w42")}, nil},
-//	//	{3, 4, "w33", "w42", "w43", [][]byte{[]byte("w43")}, nil},
-//	//}
-//	//if full {
-//	//	newPlays := []play{
-//	//		{2, 8, "w42", "w43", "e23", [][]byte{[]byte("e23")}, nil},
-//	//		{1, 9, "w41", "e23", "w51", [][]byte{[]byte("w51")}, nil},
-//	//	}
-//	//	plays = append(plays, newPlays...)
-//	//}
-//
-//	poset := createPoset(false, orderedEvents, participants, logger.WithField("test", 6))
-//
-//	cores[0].poset = poset;
-//
-//	cores[0].KnownEvents()
-//
-//	return poset, index
-//}
 
 func insertEvent(cores []Core, keys map[int64]*ecdsa.PrivateKey, index map[string]string,
 	event poset.Event, name string, participant int64, creator int64) error {
